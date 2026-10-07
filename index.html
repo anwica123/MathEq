@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathEq</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#333333">
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    background: #f7f7f7;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+	}
+
+    h1 {
+		white-space: nowrap;
+		font-size: 22px;
+	}
+
+    #message {
+        height: 30px;
+        font-size: 18px;
+        font-weight: bold;
+        margin: 2px;
+    }
+
+    /* Game board */
+    #board {
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
+		align-items: center;
+		margin: 15px auto;
+	}
+
+    .row {
+		display: flex;
+		gap: 3px;
+	}
+
+	.tile {
+		width: 38px;
+		height: 38px;
+		border: 2px solid #d3d6da;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 20px;
+		font-weight: bold;
+		background: white;
+	}
+
+    .green {
+        background: #6aaa64;
+        color: white;
+        border-color: #6aaa64;
+    }
+
+    .yellow {
+        background: #c9b458;
+        color: white;
+        border-color: #c9b458;
+    }
+
+    .gray {
+        background: #787c7e;
+        color: white;
+        border-color: #787c7e;
+    }
+
+    /* Keyboard */
+    #keyboard {
+		width: 100%;
+		max-width: 360px;
+		margin: 15px auto;
+	}
+
+	.key-row {
+		display: flex;
+		justify-content: center;
+		gap: 3px;
+		margin-bottom: 5px;
+	}
+
+	.key {
+		min-width: 32px;
+		height: 42px;
+		font-size: 16px;
+		padding: 0 5px;
+	}
+
+	.wide {
+		min-width: 58px;
+	}
+
+    button {
+        border: none;
+        border-radius: 5px;
+        background: #d3d6da;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .key.green {
+        background: #6aaa64;
+    }
+
+    .key.yellow {
+        background: #c9b458;
+    }
+
+    .key.gray {
+        background: #787c7e;
+    }
+
+    #newGame {
+        margin-top: 15px;
+        padding: 10px 20px;
+        font-size: 16px;
+        background: #333;
+        color: white;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>MathEq: Guess the Math Equation</h1>
+
+<div id="message"></div>
+
+<div id="board"></div>
+
+<div id="keyboard"></div>
+
+<button id="newGame" onclick="startGame()">New Game</button>
+
+
+<script>
+
+/************************************************************
+ * GAME SETTINGS
+ ************************************************************/
+
+const MAX_GUESSES = 8;
+
+
+/************************************************************
+ * YOUR PUZZLE LOGIC
+ *
+ * Change this function to generate your own questions.
+ *
+ * IMPORTANT:
+ * The function should return the equation as a STRING.
+ *
+ * Examples:
+ *
+ * return "9+2-3=8";
+ * return "2*3+6=12";
+ * return "8/2+3=7";
+ *
+ ************************************************************/
+
+function generatePuzzle() {
+
+    let operators = ["+", "-", "*", "/"];
+
+    // Random operator
+    let op = operators[Math.floor(Math.random() * operators.length)];
+
+    let a, b, answer;
+
+    // One 2-digit number
+    a = Math.floor(Math.random() * 90) + 10;
+
+    // One 1-digit number
+    b = Math.floor(Math.random() * 9) + 1;
+
+
+    if (op === "+") {
+
+        answer = a + b;
+
+    }
+    else if (op === "-") {
+
+        // Make sure answer is not negative
+        if (b > a) {
+            [a, b] = [b, a];
+        }
+
+        answer = a - b;
+
+    }
+    else if (op === "*") {
+
+        // Keep generating until result <= 100
+        do {
+            a = Math.floor(Math.random() * 90) + 10;
+            b = Math.floor(Math.random() * 9) + 1;
+            answer = a * b;
+        } while (answer > 100);
+
+    }
+    else if (op === "/") {
+
+        // Keep generating until division is exact
+        do {
+            a = Math.floor(Math.random() * 90) + 10;
+            b = Math.floor(Math.random() * 9) + 1;
+        } while (a % b !== 0);
+
+        answer = a / b;
+    }
+
+    return `${a}${op}${b}=${answer}`;
+}
+
+/************************************************************
+ * GAME VARIABLES
+ ************************************************************/
+
+let answer = "";
+let currentGuess = "";
+let guesses = [];
+let gameOver = false;
+
+
+/************************************************************
+ * START GAME
+ ************************************************************/
+
+function startGame() {
+
+    answer = generatePuzzle();
+
+    currentGuess = "";
+    guesses = [];
+    gameOver = false;
+
+    document.getElementById("message").textContent = "";
+
+    createBoard();
+    createKeyboard();
+}
+
+
+/************************************************************
+ * CREATE BOARD
+ ************************************************************/
+
+function createBoard() {
+
+    const board = document.getElementById("board");
+
+    board.innerHTML = "";
+
+    // Equation length determines number of boxes
+    const length = answer.length;
+
+    for (let r = 0; r < MAX_GUESSES; r++) {
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        for (let c = 0; c < length; c++) {
+
+            const tile = document.createElement("div");
+
+            tile.className = "tile";
+            tile.id = `tile-${r}-${c}`;
+
+            row.appendChild(tile);
+        }
+
+        board.appendChild(row);
+    }
+}
+
+
+/************************************************************
+ * CREATE KEYBOARD
+ ************************************************************/
+
+function createKeyboard() {
+
+    const keyboard = document.getElementById("keyboard");
+
+    keyboard.innerHTML = "";
+
+    const rows = [
+        ["1","2","3","4","5","6","7","8","9","0"],
+        ["+","-","*","/","=","⌫","ENTER"]
+    ];
+
+    rows.forEach(rowKeys => {
+
+        const row = document.createElement("div");
+
+        row.className = "key-row";
+
+        rowKeys.forEach(key => {
+
+            const button = document.createElement("button");
+
+            button.textContent = key;
+
+            button.className = "key";
+
+            if (key === "ENTER" || key === "⌫") {
+                button.classList.add("wide");
+            }
+
+            button.onclick = () => pressKey(key);
+
+            row.appendChild(button);
+        });
+
+        keyboard.appendChild(row);
+    });
+}
+
+
+/************************************************************
+ * KEYBOARD INPUT
+ ************************************************************/
+
+function pressKey(key) {
+
+    if (gameOver) {
+        return;
+    }
+
+    if (key === "ENTER") {
+        submitGuess();
+        return;
+    }
+
+    if (key === "⌫") {
+
+        currentGuess = currentGuess.slice(0, -1);
+
+        updateCurrentRow();
+
+        return;
+    }
+
+    // Do not allow more characters than the answer
+    if (currentGuess.length >= answer.length) {
+        return;
+    }
+
+    currentGuess += key;
+
+    updateCurrentRow();
+}
+
+
+/************************************************************
+ * UPDATE CURRENT ROW
+ ************************************************************/
+
+function updateCurrentRow() {
+
+    const rowNumber = guesses.length;
+
+    for (let i = 0; i < answer.length; i++) {
+
+        const tile = document.getElementById(
+            `tile-${rowNumber}-${i}`
+        );
+
+        tile.textContent = currentGuess[i] || "";
+    }
+}
+
+
+/************************************************************
+ * SUBMIT GUESS
+ ************************************************************/
+
+function submitGuess() {
+
+    if (currentGuess.length !== answer.length) {
+
+        showMessage("Complete the equation first!");
+
+        return;
+    }
+
+    // Basic validation
+    if (!isValidEquation(currentGuess)) {
+
+        showMessage("That is not a valid equation!");
+
+        return;
+    }
+
+    guesses.push(currentGuess);
+
+    checkGuess(currentGuess);
+
+    // Correct answer
+    if (currentGuess === answer) {
+
+        showMessage("🎉 Great job!");
+
+        gameOver = true;
+
+        return;
+    }
+
+    // Out of guesses
+    if (guesses.length >= MAX_GUESSES) {
+
+        showMessage("The answer was " + answer);
+
+        gameOver = true;
+
+        return;
+    }
+
+    currentGuess = "";
+}
+
+
+/************************************************************
+ * CHECK GUESS
+ *
+ * This gives Wordle-style feedback.
+ ************************************************************/
+
+function checkGuess(guess) {
+
+    const rowNumber = guesses.length - 1;
+
+    for (let i = 0; i < answer.length; i++) {
+
+        const tile = document.getElementById(
+            `tile-${rowNumber}-${i}`
+        );
+
+        const letter = guess[i];
+
+        if (letter === answer[i]) {
+
+            tile.classList.add("green");
+
+        } else if (answer.includes(letter)) {
+
+            tile.classList.add("yellow");
+
+        } else {
+
+            tile.classList.add("gray");
+        }
+    }
+}
+
+
+/************************************************************
+ * BASIC EQUATION VALIDATION
+ *
+ * This only checks that the guess contains:
+ *
+ * numbers + operators + =
+ *
+ * You can make this much smarter later.
+ ************************************************************/
+
+function isValidEquation(equation) {
+
+    // Must contain exactly one =
+    if ((equation.match(/=/g) || []).length !== 1) {
+        return false;
+    }
+
+    // Separate left and right sides
+    const parts = equation.split("=");
+
+    const left = parts[0];
+    const right = parts[1];
+
+    // Make sure both sides exist
+    if (!left || !right) {
+        return false;
+    }
+
+    // Only allow numbers and + - * /
+    if (!/^[0-9+\-*/]+$/.test(left)) {
+        return false;
+    }
+
+    // Right side must be a number
+    if (!/^[0-9]+$/.test(right)) {
+        return false;
+    }
+
+    // Prevent things like 5++2 or 5**2
+    if (/[+\-*/]{2,}/.test(left)) {
+        return false;
+    }
+
+    // Calculate the left side
+    let calculatedValue;
+
+    try {
+        calculatedValue = Function("return " + left)();
+    } catch (error) {
+        return false;
+    }
+
+    // Check the actual math
+    return calculatedValue === Number(right);
+}
+
+
+/************************************************************
+ * MESSAGE
+ ************************************************************/
+
+function showMessage(message) {
+
+    document.getElementById("message").textContent = message;
+}
+
+
+/************************************************************
+ * START THE FIRST GAME
+ ************************************************************/
+
+startGame();
+
+</script>
+
+</body>
+</html>
+
