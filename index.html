@@ -218,7 +218,6 @@ function generatePuzzle() {
 
         answer = a / b;
     }
-
     return `${a}${op}${b}=${answer}`;
 }
 
@@ -442,24 +441,52 @@ function checkGuess(guess) {
 
     const rowNumber = guesses.length - 1;
 
+    // Keep track of which answer characters have already been used
+    const used = Array(answer.length).fill(false);
+
+    // First pass: exact matches
     for (let i = 0; i < answer.length; i++) {
 
         const tile = document.getElementById(
             `tile-${rowNumber}-${i}`
         );
 
-        const letter = guess[i];
-
-        if (letter === answer[i]) {
+        if (guess[i] === answer[i]) {
 
             tile.classList.add("green");
+            used[i] = true;
+        }
+    }
 
-        } else if (answer.includes(letter)) {
+    // Second pass: yellow / gray
+    for (let i = 0; i < answer.length; i++) {
 
+        const tile = document.getElementById(
+            `tile-${rowNumber}-${i}`
+        );
+
+        // Already green
+        if (tile.classList.contains("green")) {
+            continue;
+        }
+
+        const letter = guess[i];
+
+        // Find an unused matching character in the answer
+        let found = false;
+
+        for (let j = 0; j < answer.length; j++) {
+
+            if (!used[j] && answer[j] === letter) {
+                found = true;
+                used[j] = true;
+                break;
+            }
+        }
+
+        if (found) {
             tile.classList.add("yellow");
-
         } else {
-
             tile.classList.add("gray");
         }
     }
