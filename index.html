@@ -91,7 +91,10 @@
 		font-size: 16px;
 		padding: 0 5px;
 	}
-
+	.wider {
+		min-width: 100px;
+	}
+	
 	.wide {
 		min-width: 58px;
 	}
@@ -292,8 +295,8 @@ function createKeyboard() {
     keyboard.innerHTML = "";
 
     const rows = [
-        ["1","2","3","4","5","6","7","8","9","0"],
-        ["+","-","*","/","=","⌫","ENTER"]
+        ["1","2","3","4","5"],["6","7","8","9","0"],
+        ["+","-","*","/","="],["⌫","ENTER"]
     ];
 
     rows.forEach(rowKeys => {
@@ -309,10 +312,12 @@ function createKeyboard() {
             button.textContent = key;
 
             button.className = "key";
-
             if (key === "ENTER" || key === "⌫") {
-                button.classList.add("wide");
+                button.classList.add("wider");
             }
+			else{
+				button.classList.add("wide");
+			}
 
             button.onclick = () => pressKey(key);
 
