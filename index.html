@@ -176,13 +176,13 @@ function generatePuzzle() {
 
     let a, b, answer;
 
-    // One 2-digit number
-    a = Math.floor(Math.random() * 90) + 10;
+    // One 1 or 2-digit number
+    a = Math.floor(Math.random() * 90) + 1;
 
-    // One 1-digit number
-    b = Math.floor(Math.random() * 9) + 1;
+    // One 1 or 2 -digit number
+    b = Math.floor(Math.random() * 90) + 1;
 
-
+	op = "+"
     if (op === "+") {
 
         answer = a + b;
@@ -200,24 +200,27 @@ function generatePuzzle() {
     }
     else if (op === "*") {
 
-        // Keep generating until result <= 100
+        // Keep generating until result <= 9999
         do {
-            a = Math.floor(Math.random() * 90) + 10;
-            b = Math.floor(Math.random() * 9) + 1;
+            a = Math.floor(Math.random() * 90) + 1;
+            b = Math.floor(Math.random() * 90) + 1;
             answer = a * b;
-        } while (answer > 100);
+        } while (answer > 9999);
 
     }
     else if (op === "/") {
 
         // Keep generating until division is exact
         do {
-            a = Math.floor(Math.random() * 90) + 10;
+            a = Math.floor(Math.random() * 90) + 1;
             b = Math.floor(Math.random() * 9) + 1;
-        } while (a % b !== 0);
-
-        answer = a / b;
+			answer = a * b
+        } while (answer > 999);
+		let c = answer;
+        answer = a;
+		a = c;
     }
+
     return `${a}${op}${b}=${answer}`;
 }
 
